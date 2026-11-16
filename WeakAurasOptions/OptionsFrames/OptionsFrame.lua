@@ -1371,11 +1371,18 @@ function OptionsPrivate.CreateFrame()
 
     -- WeakAuras Simple Remastered: "Advanced options" switch above the tabs
     if not frame.advancedToggle then
-      local toggle = CreateFrame("CheckButton", nil, container.frame, "UICheckButtonTemplate")
+      -- in the top toolbar, right of the role button (above the tabs it was covered)
+      local anchor = frame.roleButton and frame.roleButton.frame
+      local parent = anchor and anchor:GetParent() or container.frame
+      local toggle = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
       toggle:SetWidth(22)
       toggle:SetHeight(22)
-      toggle:SetFrameLevel(container.frame:GetFrameLevel() + 20)
-      toggle:SetPoint("TOPRIGHT", container.frame, "TOPRIGHT", -150, 4)
+      toggle:SetFrameLevel(parent:GetFrameLevel() + 5)
+      if anchor then
+        toggle:SetPoint("LEFT", anchor, "RIGHT", 12, 0)
+      else
+        toggle:SetPoint("TOPRIGHT", container.frame, "TOPRIGHT", -150, 4)
+      end
       local text = toggle:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
       text:SetPoint("LEFT", toggle, "RIGHT", 2, 1)
       text:SetText(L["Advanced options"])

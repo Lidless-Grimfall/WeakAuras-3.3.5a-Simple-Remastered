@@ -42,7 +42,7 @@ guided setup that works for every class, race and build.
 - **Shields:** show how much a shield can still absorb (the number from its tooltip) and fill a bar by it,
   as % of the shield's starting value.
 - 10 ready colors, fade in / fade out by default, glow on procs by default.
-- The full original editor is still there: tick **Advanced options** above the tabs.
+- The full original editor is still there: tick **Advanced options** in the top bar.
 
 ## Installation
 

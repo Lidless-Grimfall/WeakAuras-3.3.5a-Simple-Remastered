@@ -3,6 +3,12 @@
 Based on WeakAuras WotLK 5.22.0 (3.3.5a backport by NoM0Re, tag `5.22.0-39c2aca9`).
 Grimfall & Classless compatible by Lidless.
 
+## 0.6.11 – 2026-11-16
+
+### Fixed
+- The **Advanced options** switch was hidden behind the tabs. It is now in the top bar, next to the role button
+  (shown while an aura is selected).
+
 ## 0.6.10 – 2026-11-16
 
 ### Changed
