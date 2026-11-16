@@ -3,6 +3,13 @@
 Based on WeakAuras WotLK 5.22.0 (3.3.5a backport by NoM0Re, tag `5.22.0-39c2aca9`).
 Grimfall & Classless compatible by Lidless.
 
+## 0.6.10 – 2026-11-16
+
+### Changed
+- Auras made with the Quick Setup are on the **High** layer (Frame Strata), so action buttons and the cast bar
+  no longer cover them. The preview is on the same layer, so it looks the way the aura will.
+- Until you choose a position, the preview appears just above the Quick Setup window instead of on top of it.
+
 ## 0.6.9 – 2026-11-16
 
 ### Added

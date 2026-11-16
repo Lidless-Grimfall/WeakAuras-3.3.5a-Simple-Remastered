@@ -566,6 +566,8 @@ local function buildAuraData(state)
   local offset = positionOffset(state)
   data.anchorFrameType = "SCREEN"
   data.anchorPoint = "CENTER"
+  -- above the action bars and the cast bar (the default layer is behind the action buttons)
+  data.frameStrata = 5
   data.selfPoint = data.selfPoint or "CENTER"
   data.xOffset, data.yOffset = offset[1], offset[2]
 
@@ -712,7 +714,8 @@ local function CreateQuickSetup(frame)
   ---------------------------------------------------------------------------
   local LCG = LibStub("LibCustomGlow-1.0", true)
   local preview = CreateFrame("Frame", nil, UIParent)
-  preview:SetFrameStrata("FULLSCREEN_DIALOG")
+  -- same layer as the created aura (HIGH), so it looks the same as it will in the game
+  preview:SetFrameStrata("HIGH")
   preview:SetClampedToScreen(true)
   preview:SetMovable(true)
   preview:EnableMouse(true)
@@ -782,8 +785,13 @@ local function CreateQuickSetup(frame)
   end
 
   local function placePreview(state)
-    local offset = positionOffset(state)
     preview:ClearAllPoints()
+    if not state.position then
+      -- no place chosen yet: just above the Quick Setup window, so the window does not cover it
+      preview:SetPoint("BOTTOM", frame, "TOP", 0, 24)
+      return
+    end
+    local offset = positionOffset(state)
     preview:SetPoint("CENTER", UIParent, "CENTER", offset[1], offset[2])
   end
 
