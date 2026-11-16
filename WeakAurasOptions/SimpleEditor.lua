@@ -1296,6 +1296,8 @@ local ruleSets = {
       check = function() return { trigger = 1, variable = "insufficientResources", value = 1 } end },
     { key = "range", name = L["Target out of range"], action = "color", color = "red",
       check = function() return { trigger = 1, variable = "spellInRange", value = 0 } end },
+    { key = "inRange", name = L["Target in range (e.g. melee range)"], action = "glow",
+      check = function() return { trigger = 1, variable = "spellInRange", value = 1 } end },
   },
   itemcd = {
     { key = "onCooldown", name = L["While on cooldown"], action = "grey",
@@ -1306,6 +1308,8 @@ local ruleSets = {
   usable = {
     { key = "range", name = L["Target out of range"], action = "color", color = "red",
       check = function() return { trigger = 1, variable = "spellInRange", value = 0 } end },
+    { key = "inRange", name = L["Target in range (e.g. melee range)"], action = "glow",
+      check = function() return { trigger = 1, variable = "spellInRange", value = 1 } end },
   },
   health = {
     { key = "below", name = L["Below X percent"], unit = "%", min = 5, max = 95, default = 35, action = "color", color = "red",
@@ -1385,6 +1389,7 @@ local function rebuildConditions(data)
   data.conditions = conditions
   data.simpleRulesSig = signature(conditions)
 end
+OptionsPrivate.SimpleRebuildConditions = rebuildConditions
 
 function OptionsPrivate.GetSimpleRulesOptions(data)
   local args = {}

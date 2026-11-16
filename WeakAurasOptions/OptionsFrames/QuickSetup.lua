@@ -279,6 +279,7 @@ local function resetBlock3(state)
   state.tooltipNumber, state.tooltipPercent = nil, nil
   state.colorByStacks = true
   state.glow = false
+  state.rangeGlow = false
   state.sound = "none"
 end
 
@@ -608,6 +609,13 @@ local function buildAuraData(state)
     data.actions.start.do_sound = true
     data.actions.start.sound = state.sound
     data.actions.start.sound_channel = "Master"
+  end
+
+  -- rule "Target in range -> glow" (same as on the Rules tab, so it can be changed there later)
+  if state.rangeGlow and state.category == "cooldown" and state.detail == "spell"
+     and (state.display == "icon" or state.display == "aurabar") and OptionsPrivate.SimpleRebuildConditions then
+    data.simpleRules = { inRange = { enabled = true, action = "glow" } }
+    OptionsPrivate.SimpleRebuildConditions(data)
   end
 
   applyWhen(state, data)
@@ -1059,6 +1067,11 @@ local function CreateQuickSetup(frame)
         checkbox(block3, L["Glow while shown"], state.glow, function(v)
           state.glow = v
         end, 1)
+        if state.category == "cooldown" and state.detail == "spell" then
+          checkbox(block3, L["Glow when the target is in range of this spell (e.g. melee range)"], state.rangeGlow, function(v)
+            state.rangeGlow = v
+          end, 1)
+        end
       end
       -- shields and other buffs with a number in their tooltip (e.g. "Absorbing 241 damage")
       local isAura = state.category == "buff" or (state.category == "proc" and state.detail == "proc")

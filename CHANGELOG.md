@@ -3,6 +3,14 @@
 Based on WeakAuras WotLK 5.22.0 (3.3.5a backport by NoM0Re, tag `5.22.0-39c2aca9`).
 Grimfall & Classless compatible by Lidless.
 
+## 0.6.7 – 2026-11-16
+
+### Added
+- **Glow when the target is in range** for spell cooldowns (e.g. a melee ability that should light up in melee range):
+  - Quick Setup → Cooldown → Spell cooldown → Icon or Bar: tick *Glow when the target is in range of this spell*.
+    Together with *Show it: Only when ready* the icon appears when the spell is ready and glows in range.
+  - Rules tab: new rule *Target in range (e.g. melee range)*, next to *Target out of range*.
+
 ## 0.6.6 – 2026-11-08
 
 ### Fixed

@@ -32,7 +32,7 @@ guided setup that works for every class, race and build.
   **Resource** (health, power, combo points).
 - **Simple editor** with five short tabs: *Look, Trigger, Effects, Rules, When*.
 - **Rules** instead of the condition editor: e.g. "less than 3 seconds left → red",
-  "while on cooldown → grey", "below 35% → fade out".
+  "while on cooldown → grey", "below 35% → fade out", "target in range → glow".
 - **Choose instead of typing:** every character quietly learns its own buffs, debuffs and procs
   (also the ones from Grimfall runes) and its own DoTs on the target. Pick them from a list with icons,
   together with the spellbook and usable items. Anything missing can be added by hand.
