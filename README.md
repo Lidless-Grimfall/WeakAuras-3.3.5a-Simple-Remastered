@@ -132,7 +132,7 @@ Click it in the list on the left. The editor has five tabs:
 | **Rules** | ready made "if this, then that" rules: change color, grey out, fade out, fade in, glow |
 | **When** | combat, group, instance type, mounted, vehicle, roles, characters |
 
-Tick **Advanced options** (above the tabs) to see every original WeakAuras setting.
+Tick **Advanced options** (in the top bar, next to the role button) to see every original WeakAuras setting.
 
 ### Commands
 | Command | |
