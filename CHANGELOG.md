@@ -3,6 +3,15 @@
 Based on WeakAuras WotLK 5.22.0 (3.3.5a backport by NoM0Re, tag `5.22.0-39c2aca9`).
 Grimfall & Classless compatible by Lidless.
 
+## 0.6.8 – 2026-11-16
+
+### Added
+- **Abilities without a cooldown that should light up in range** (e.g. Twin Slice in melee range):
+  Quick Setup → Proc → *An ability lights up* → tick *Only when the target is in range (e.g. melee range)*.
+  The icon only appears while the ability is usable **and** the target is in its range, and it glows.
+  Also on the simple Trigger tab of such auras. (Cooldown auras are not suited for this: a spell without
+  a cooldown is always "ready", so the icon never goes away.)
+
 ## 0.6.7 – 2026-11-16
 
 ### Added

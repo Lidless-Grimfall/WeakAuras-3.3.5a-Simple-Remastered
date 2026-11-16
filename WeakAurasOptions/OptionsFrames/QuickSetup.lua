@@ -261,6 +261,7 @@ local function resetBlock2(state)
   if not powerTypes.list[state.powerType] then state.powerType = 0 end
   state.below = 0
   state.maxStacks = 10
+  state.onlyInRange = false
 end
 
 local function resetBlock2Details(state)
@@ -270,6 +271,7 @@ local function resetBlock2Details(state)
   state.unit = "player"
   state.below = 0
   state.maxStacks = 10
+  state.onlyInRange = false
 end
 
 local function resetBlock3(state)
@@ -423,6 +425,7 @@ local function buildTrigger(state)
         type = WeakAuras.GetTriggerCategoryFor("Action Usable"),
         event = "Action Usable",
         spellName = spellId,
+        use_inRange = state.onlyInRange or nil,
       }
     else
       local spellId = resolveSpell(state.name)
@@ -981,6 +984,12 @@ local function CreateQuickSetup(frame)
           dropdown(block2, L["Show it"], cooldownShowOn, state.showOn, function(key)
             state.showOn = key
             refresh()
+          end, 1)
+        end
+
+        if state.category == "proc" and state.detail == "usable" then
+          checkbox(block2, L["Only when the target is in range (e.g. melee range)"], state.onlyInRange, function(v)
+            state.onlyInRange = v
           end, 1)
         end
 

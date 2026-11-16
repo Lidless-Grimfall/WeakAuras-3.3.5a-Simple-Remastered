@@ -5118,12 +5118,16 @@ Private.event_prototypes = {
   },
   ["Action Usable"] = {
     type = "spell",
-    events = function()
+    events = function(trigger)
       local events = {
         "SPELL_UPDATE_USABLE",
         "ACTIONBAR_UPDATE_USABLE",
         "PLAYER_TARGET_CHANGED",
       }
+      -- Simple Remastered: "only in range" has no event of its own, so it is checked every frame
+      if trigger and trigger.use_inRange then
+        tinsert(events, "FRAME_UPDATE")
+      end
       local unit_events
       if UnitPowerType("player") == 6 then
         tinsert(events, "RUNE_POWER_UPDATE")
@@ -5188,6 +5192,10 @@ Private.event_prototypes = {
       if(trigger.use_targetRequired) then
         ret = ret.."active = active and WeakAuras.IsSpellInRange(spellName or '', 'target')\n";
       end
+      -- Simple Remastered: the target is really in range of the spell (e.g. melee range); 0 = out of range
+      if(trigger.use_inRange) then
+        ret = ret.."active = active and UnitExists('target') and WeakAuras.IsSpellInRange(spellName or '', 'target') == 1\n";
+      end
       if(trigger.use_inverse) then
         ret = ret.."active = not active\n";
       end
@@ -5214,6 +5222,12 @@ Private.event_prototypes = {
       {
         name = "targetRequired",
         display = L["Require Valid Target"],
+        type = "toggle",
+        test = "true"
+      },
+      {
+        name = "inRange",
+        display = L["Only when the target is in range"],
         type = "toggle",
         test = "true"
       },

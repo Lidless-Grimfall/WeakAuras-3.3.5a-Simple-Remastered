@@ -1017,6 +1017,16 @@ function OptionsPrivate.GetSimpleTriggerOptions(data)
         return "|cffff4040" .. L["Unknown spell. It has to be in your spellbook, or use the spell ID."] .. "|r"
       end,
     }
+    if kind == "usable" then
+      args.onlyInRange = {
+        type = "toggle", name = L["Only when the target is in range (e.g. melee range)"], order = nextOrder(), width = WeakAuras.doubleWidth,
+        get = function() return t.use_inRange and true or false end,
+        set = function(_, v)
+          t.use_inRange = v or nil
+          commit(data, true)
+        end,
+      }
+    end
     if kind == "spellcd" then
       args.showOn = {
         type = "select", name = L["Show it"], order = nextOrder(), width = WeakAuras.doubleWidth,
