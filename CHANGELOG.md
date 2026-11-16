@@ -3,6 +3,17 @@
 Based on WeakAuras WotLK 5.22.0 (3.3.5a backport by NoM0Re, tag `5.22.0-39c2aca9`).
 Grimfall & Classless compatible by Lidless.
 
+## 0.6.9 – 2026-11-16
+
+### Added
+- **Live preview in the Quick Setup.** As soon as you choose Icon, Bar, Text or Circle, the aura appears on the screen
+  as it will look (icon, size, color, glow, bar with name and time) and changes while you set it up.
+  **Drag the preview** to where you want the aura; the position becomes "Where I dragged the preview".
+
+### Fixed
+- Opening the Quick Setup no longer leaves the preview of the aura that was selected in the list (or under the mouse)
+  on the screen.
+
 ## 0.6.8 – 2026-11-16
 
 ### Added

@@ -126,8 +126,9 @@ local positions = {
     left = L["Left of my character"],
     right = L["Right of my character"],
     top = L["Top of the screen"],
+    custom = L["Where I dragged the preview"],
   },
-  order = { "center", "above", "below", "left", "right", "top" },
+  order = { "center", "above", "below", "left", "right", "top", "custom" },
   offsets = {
     center = { 0, 0 },
     above = { 0, 150 },
@@ -519,6 +520,15 @@ end
 
 local applyWhen -- defined below
 
+--- x / y offset from the screen center for the chosen position (or where the preview was dragged)
+local function positionOffset(state)
+  if state.position == "custom" then
+    return state.customOffset or { 0, 0 }
+  end
+  return positions.offsets[state.position] or { 0, 0 }
+end
+OptionsPrivate.QuickSetupPositionOffset = positionOffset
+
 local function buildAuraData(state)
   if isGroupBuff(state) then
     local groupData = buildGroupBarsData(state)
@@ -553,7 +563,7 @@ local function buildAuraData(state)
   end
 
   -- position (you can drag it afterwards)
-  local offset = positions.offsets[state.position] or { 0, 0 }
+  local offset = positionOffset(state)
   data.anchorFrameType = "SCREEN"
   data.anchorPoint = "CENTER"
   data.selfPoint = data.selfPoint or "CENTER"
@@ -697,6 +707,185 @@ local function CreateQuickSetup(frame)
     delayFrame:Show()
   end
 
+  ---------------------------------------------------------------------------
+  -- live preview: shows the aura as it will look, can be dragged to its place
+  ---------------------------------------------------------------------------
+  local LCG = LibStub("LibCustomGlow-1.0", true)
+  local preview = CreateFrame("Frame", nil, UIParent)
+  preview:SetFrameStrata("FULLSCREEN_DIALOG")
+  preview:SetClampedToScreen(true)
+  preview:SetMovable(true)
+  preview:EnableMouse(true)
+  preview:RegisterForDrag("LeftButton")
+  preview:Hide()
+
+  preview.caption = preview:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  preview.caption:SetPoint("BOTTOM", preview, "TOP", 0, 4)
+  preview.caption:SetText(L["Preview - drag it to its place"])
+
+  preview.icon = preview:CreateTexture(nil, "ARTWORK")
+  preview.icon:SetAllPoints(preview)
+
+  preview.barBg = preview:CreateTexture(nil, "BACKGROUND")
+  preview.bar = CreateFrame("StatusBar", nil, preview)
+  preview.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+  preview.bar:SetMinMaxValues(0, 1)
+  preview.bar:SetValue(0.65)
+  preview.barBg:SetTexture(0, 0, 0, 0.6)
+  preview.barBg:SetAllPoints(preview.bar)
+  preview.barIcon = preview:CreateTexture(nil, "ARTWORK")
+  preview.barName = preview.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  preview.barName:SetPoint("LEFT", preview.bar, "LEFT", 4, 0)
+  preview.barTime = preview.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+  preview.barTime:SetPoint("RIGHT", preview.bar, "RIGHT", -4, 0)
+
+  preview.text = preview:CreateFontString(nil, "OVERLAY")
+  preview.text:SetPoint("CENTER", preview, "CENTER")
+
+  preview.circle = preview:CreateTexture(nil, "ARTWORK")
+  preview.circle:SetAllPoints(preview)
+  preview.circle:SetTexture("Interface\\AddOns\\WeakAuras\\Media\\Textures\\Circle_White_Border")
+
+  local function previewIcon(state)
+    local icon
+    if state.detail == "item" then
+      icon = select(3, resolveItem(state.name))
+    elseif isCooldownLike(state) and state.detail ~= "proc" then
+      icon = select(3, resolveSpell(state.name))
+    elseif state.pickedId then
+      icon = select(3, GetSpellInfo(state.pickedId))
+    elseif state.name and state.name ~= "" then
+      icon = auraIcon(state.name:match("^%s*([^,]-)%s*,") or state.name)
+    end
+    return icon or "Interface\\Icons\\INV_Misc_QuestionMark"
+  end
+
+  local function previewName(state)
+    if state.category == "resource" then
+      return defaultAuraName(state)
+    end
+    if state.detail == "item" then
+      local _, name = resolveItem(state.name)
+      return name or state.name
+    elseif isCooldownLike(state) and state.detail ~= "proc" then
+      local _, name = resolveSpell(state.name)
+      return name or state.name
+    end
+    return state.pickedName or (state.name ~= "" and state.name) or L["Aura"]
+  end
+
+  local function previewColor(state)
+    local colors = OptionsPrivate.SimpleColors
+    local key = state.color or defaultColor(state)
+    local c = colors and colors.byKey[key] and colors.byKey[key].value
+    return c or { 1, 1, 1, 1 }
+  end
+
+  local function placePreview(state)
+    local offset = positionOffset(state)
+    preview:ClearAllPoints()
+    preview:SetPoint("CENTER", UIParent, "CENTER", offset[1], offset[2])
+  end
+
+  local glowing = false
+  local function setGlow(on)
+    if not (LCG and LCG.ButtonGlow_Start) then return end
+    if on and not glowing then
+      LCG.ButtonGlow_Start(preview)
+    elseif not on and glowing then
+      LCG.ButtonGlow_Stop(preview)
+    end
+    glowing = on
+  end
+
+  local function hidePreview()
+    setGlow(false)
+    preview:Hide()
+  end
+  view.HidePreview = hidePreview
+
+  local function updatePreview()
+    local state = view.state
+    local display = state and state.display
+    if not view.frame:IsShown() or not display or not sizes[display]
+       or display == "groupFrames" or display == "groupList" then
+      hidePreview()
+      return
+    end
+    local size = state.size or sizes[display].default
+    local c = previewColor(state)
+    preview.icon:Hide(); preview.bar:Hide(); preview.barBg:Hide(); preview.barIcon:Hide()
+    preview.text:Hide(); preview.circle:Hide()
+    if display == "icon" then
+      preview:SetWidth(size); preview:SetHeight(size)
+      preview.icon:SetTexture(previewIcon(state))
+      preview.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+      preview.icon:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+      preview.icon:Show()
+    elseif display == "aurabar" then
+      local height = 18
+      local withIcon = state.category ~= "resource"
+      preview:SetWidth(size + (withIcon and height or 0)); preview:SetHeight(height)
+      preview.bar:ClearAllPoints()
+      if withIcon then
+        preview.barIcon:ClearAllPoints()
+        preview.barIcon:SetPoint("TOPLEFT", preview, "TOPLEFT")
+        preview.barIcon:SetWidth(height); preview.barIcon:SetHeight(height)
+        preview.barIcon:SetTexture(previewIcon(state))
+        preview.barIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        preview.barIcon:Show()
+        preview.bar:SetPoint("TOPLEFT", preview.barIcon, "TOPRIGHT")
+      else
+        preview.bar:SetPoint("TOPLEFT", preview, "TOPLEFT")
+      end
+      preview.bar:SetPoint("BOTTOMRIGHT", preview, "BOTTOMRIGHT")
+      preview.bar:SetStatusBarColor(c[1], c[2], c[3], c[4] or 1)
+      preview.barName:SetText(previewName(state))
+      preview.barTime:SetText(state.category == "resource" and "65%" or "8.4")
+      preview.bar:Show(); preview.barBg:Show()
+    elseif display == "text" then
+      preview.text:SetFont(STANDARD_TEXT_FONT, size, "OUTLINE")
+      preview.text:SetTextColor(c[1], c[2], c[3], c[4] or 1)
+      if state.category == "resource" then
+        preview.text:SetText(state.detail == "combo" and "3" or "65 / 100")
+      else
+        preview.text:SetText(previewName(state) .. " 8.4")
+      end
+      preview.text:Show()
+      preview:SetWidth(max(preview.text:GetStringWidth(), 20)); preview:SetHeight(size + 4)
+    elseif display == "progresstexture" then
+      preview:SetWidth(size); preview:SetHeight(size)
+      preview.circle:SetVertexColor(c[1], c[2], c[3], c[4] or 1)
+      preview.circle:Show()
+    end
+    if not preview.dragging then
+      placePreview(state)
+    end
+    preview:Show()
+    setGlow(state.glow and (display == "icon" or display == "aurabar") or false)
+  end
+  view.UpdatePreview = updatePreview
+
+  preview:SetScript("OnDragStart", function(self)
+    self.dragging = true
+    self:StartMoving()
+  end)
+  preview:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    self.dragging = false
+    local x, y = self:GetCenter()
+    local ux, uy = UIParent:GetCenter()
+    local state = view.state
+    state.customOffset = { math.floor(x - ux + 0.5), math.floor(y - uy + 0.5) }
+    state.position = "custom"
+    if view.positionDropdown then
+      view.positionDropdown:SetValue("custom")
+    end
+    placePreview(state)
+    if view.Refresh then view.Refresh() end
+  end)
+  view.frame:HookScript("OnHide", hidePreview)
+
   --- scroll so that the block above the newly opened one is at the top,
   --- never all the way to the new block itself, and never backwards
   local function scrollToBlock(index)
@@ -769,7 +958,9 @@ local function CreateQuickSetup(frame)
       scrollToBlock(active)
     end
     view.lastActive = active
+    updatePreview()
   end
+  view.Refresh = function() refresh() end
 
   local rebuild
 
@@ -803,6 +994,7 @@ local function CreateQuickSetup(frame)
     widget:SetRelativeWidth(width or 0.48)
     widget:SetCallback("OnValueChanged", function(_, _, key)
       onChange(key)
+      updatePreview()
     end)
     return track(block, widget)
   end
@@ -845,6 +1037,7 @@ local function CreateQuickSetup(frame)
     widget:SetRelativeWidth(width or 0.48)
     widget:SetCallback("OnValueChanged", function(_, _, v)
       onChange(v)
+      updatePreview()
     end)
     return track(block, widget)
   end
@@ -1104,11 +1297,11 @@ local function CreateQuickSetup(frame)
         label(block4, "|cffffd100" .. L["No raid frame found right now. It works once your raid frames are shown (e.g. in a group); otherwise choose \"List with names\"."] .. "|r")
       end
     else
-      dropdown(block4, L["Position"], positions, state.position, function(key)
+      view.positionDropdown = dropdown(block4, L["Position"], positions, state.position, function(key)
         state.position = key
         refresh()
       end, 1)
-      label(block4, "|cff999999" .. L["After creating it you can drag it anywhere with the mouse."] .. "|r")
+      label(block4, "|cff999999" .. L["You can also drag the preview with the mouse, and the aura itself later."] .. "|r")
     end
 
     -- 5. When
@@ -1171,6 +1364,10 @@ local function CreateQuickSetup(frame)
   restart:SetText(L["Start Over"])
 
   function view.Open(self, targetId)
+    -- the aura selected in the list (or under the mouse) would stay visible as a preview: hide it
+    if frame.ClearPicks then
+      frame:ClearPicks()
+    end
     frame.window = "quickSetup"
     self.targetId = targetId
     self.state = newState()
@@ -1183,6 +1380,7 @@ local function CreateQuickSetup(frame)
   end
 
   function view.CancelClose(self)
+    hidePreview()
     frame.window = "default"
     frame:UpdateFrameVisible()
     frame:NewAura()
@@ -1193,6 +1391,7 @@ local function CreateQuickSetup(frame)
     if activeBlocks(state) < 5 then return end
     local data = buildAuraData(state)
     local targetId = self.targetId
+    hidePreview()
     frame.window = "default"
     frame:UpdateFrameVisible()
     if data.simpleGroupBars then
@@ -1312,7 +1511,7 @@ function OptionsPrivate.CreateGroupBars(data, state, targetId)
   local GroupBars = OptionsPrivate.SimpleGroupBars
   local parentId = targetId
   if data.simpleGroupBars.mode == "list" then
-    local offset = positions.offsets[state.position] or { 0, 0 }
+    local offset = positionOffset(state)
     local group = {
       id = OptionsPrivate.Private.FindUnusedId(data.id .. " " .. L["(list)"]),
       regionType = "dynamicgroup",

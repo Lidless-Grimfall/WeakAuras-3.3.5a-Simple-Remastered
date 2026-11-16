@@ -69,7 +69,8 @@ guided setup that works for every class, race and build.
    3. **How should it look?** Icon, bar, text or circle; size, color, sound, glow.
    4. **Where should it be?** A starting position.
    5. **When should it be active?** Combat, group, role, characters, name.
-4. Click **Create**, then drag the aura to its place with the mouse.
+   From step 3 on, a **live preview** shows the aura on the screen as it will look; drag it to where you want it.
+4. Click **Create**. You can still drag the aura with the mouse later.
 
 ### Healers: my buff on group members (e.g. Void-Touched, HoTs)
 Quick Setup → **Buff / Debuff** → **My buff on group members** → Choose... (or type the name) → set **Max stacks**
